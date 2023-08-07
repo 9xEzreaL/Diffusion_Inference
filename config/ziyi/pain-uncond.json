@@ -1,26 +1,24 @@
 {
     "name": "pain", // experiments name
-    "gpu_ids": [0], // gpu ids list, default is single 0
+    "gpu_ids": [1], // gpu ids list, default is single 0 4,5,6,7
     "seed" : -1, // random seed, seed <0 represents randomization not used
     "finetune_norm": false, // find the parameters to optimize
+    "guided_step": 0, // noisy guided until which step
 
     "path": { //set every part file path
         "base_dir": "out", // base path for all log except resume_state
         "results": "results",
-        "resume_state": "submodels/tiny_arch_cond/200",
-        "exp_name": "tiny_arch_cond/0807"
+        "resume_state": "submodels/uncond_model/100",
+        "exp_name": "uncond/0726"
     },
 
     "datasets": { // train or test
         "test": {
             "which_dataset": {
-                "name": "PainValidationDataset", // import Dataset() class / function(not recommend) from default file
-                "args":{
+                "name": "PainWomaskValidationDataset", // import Dataset() class / function(not recommend) from default file
+                "args": {
                     "data_root": "/media/ziyi/Dataset/OAI_pain/full/ap/*",
-                    "mask_config": {
-                        "mask_mode": "hybrid"
-                    },
-                    "ids": [1223, 1245, 2698, 5591, 6909, 9255, 9351, 9528] // if want all data ids: "all"
+                "ids": [1223, 1245, 2698, 5591, 6909, 9255, 9351, 9528] // if want all data ids: "all"
                 }
             },
             "dataloader":{
@@ -38,7 +36,7 @@
             "name": ["models.model", "Palette"], // import Model() class / function(not recommend) from models.model.py (default is [models.model.py])
             "args": {
                 "sample_num": 8, // process of each image
-                "task": "inpainting",
+                "task": "uncond_noisy_guided",
                 "ema_scheduler": {
                     "ema_start": 1,
                     "ema_iter": 1,
@@ -56,22 +54,22 @@
                     "init_type": "kaiming", // method can be [normal | xavier| xavier_uniform | kaiming | orthogonal], default is kaiming
                     "module_name": "guided_diffusion", // sr3 | guided_diffusion
                     "unet": {
-                        "in_channel": 2,
+                        "in_channel": 1,
                         "out_channel": 1,
-                        "inner_channel": 32,
+                        "inner_channel": 64,
                         "channel_mults": [
                             1,
-                            1,
                             2,
-                            4
+                            4,
+                            8
                         ],
                         "attn_res": [
                             // 32,
                             16
                             // 8
                         ],
-                        "num_head_channels": 16,
-                        "res_blocks": 1,
+                        "num_head_channels": 32,
+                        "res_blocks": 2,
                         "dropout": 0.2,
                         "image_size": 256
                     },
@@ -104,8 +102,8 @@
     "train": { // arguments for basic training
         "n_epoch": 1e8, // max epochs, not limited now
         "n_iter": 1e8, // max interations
-        "val_epoch": 10, // valdation every specified number of epochs
-        "save_checkpoint_epoch": 10,
+        "val_epoch": 5, // valdation every specified number of epochs
+        "save_checkpoint_epoch": 5,
         "log_iter": 1e3, // log every specified number of iterations
         "tensorboard" : true // tensorboardX enable
     },
@@ -117,3 +115,8 @@
         "debug_split": 50 // percent or number, change the size of dataloder to debug_split.
     }
 }
+
+
+
+
+

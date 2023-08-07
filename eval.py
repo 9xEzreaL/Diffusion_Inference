@@ -57,7 +57,8 @@ def main_worker(gpu, ngpus_per_node, opt):
     phase_logger.info('Begin model {}.'.format(opt['phase']))
 
     try:
-        for running_time in range(opt["running_times"]):
+        print(opt["sample_times"])
+        for running_time in range(opt["sample_times"]):
             if opt['phase'] == 'train':
                 model.train()
             else:
@@ -82,11 +83,11 @@ if __name__ == '__main__':
     parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('-P', '--port', default='21012', type=str)
+    parser.add_argument('-st', '--sample_times', type=int, default=1, help='continuous sample times per images')
 
     ''' parser configs '''
     args = parser.parse_args()
     opt = Praser.parse(args)
-    opt["running_times"] = 1
 
     ''' cuda devices '''
     gpu_str = ','.join(str(x) for x in opt['gpu_ids'])

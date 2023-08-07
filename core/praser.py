@@ -106,6 +106,7 @@ def parse(args):
         opt['gpu_ids'] = [int(id) for id in args.gpu_ids.split(',')]
     if args.batch is not None:
         opt['datasets'][opt['phase']]['dataloader']['args']['batch_size'] = args.batch
+    opt["sample_times"] = args.sample_times
  
     ''' set cuda environment '''
     if len(opt['gpu_ids']) > 1:
@@ -134,7 +135,7 @@ def parse(args):
     for key, path in opt['path'].items():
         if 'resume' not in key and 'base' not in key and 'root' not in key:
             opt['path'][key] = os.path.join(experiments_root, path)
-            mkdirs(opt['path'][key])
+            # mkdirs(opt['path'][key])
 
     ''' debug mode '''
     if 'debug' in opt['name']:

@@ -18,9 +18,6 @@
                 "name": "PainValidationDataset", // import Dataset() class / function(not recommend) from default file
                 "args":{
                     "data_root": "/media/ziyi/Dataset/OAI_pain/full/ap/*",
-                    "mask_config": {
-                        "mask_mode": "hybrid"
-                    },
                     "ids": [1223, 1245, 2698, 5591, 6909, 9255, 9351, 9528] // if want all data ids: "all"
                 }
             },

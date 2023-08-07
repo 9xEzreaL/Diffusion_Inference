@@ -111,9 +111,11 @@ class VisualWriter():
             outputs = Util.postprocess(results['result'])
             for i in range(len(names)):
                 info = names[i].split('_', 1)
-                os.makedirs(os.path.join(result_path, str(running_time), info[0]), exist_ok=True)
-                tiff.imwrite(os.path.join(result_path, str(running_time), info[0], info[1]), outputs[i])
+                os.makedirs(os.path.join(result_path, info[0]), exist_ok=True)
+                # tiff.imwrite(os.path.join(result_path, str(running_time), info[0], info[1]), outputs[i])
                 # Image.fromarray(outputs[i]).save(os.path.join(result_path, names[i]))
+                id, img_type = info[1].split('.', 1)
+                tiff.imwrite(os.path.join(result_path, info[0], f"{id}_{str(running_time).zfill(3)}.{img_type}"), outputs[i])
 
         except:
             raise NotImplementedError('You must specify the context of name and result in save_current_results functions of model.')

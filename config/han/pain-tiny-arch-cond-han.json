@@ -17,9 +17,6 @@
                 "name": "PainValidationDatasetHan", // import Dataset() class / function(not recommend) from default fileimport torch
                 "args":{
                     "data_root": "output/a/*",
-                    "mask_config": {
-                        "mask_mode": "hybrid"
-                    },
                     "ids": [13,14] // if want all data ids: "all"
                 }
             },
