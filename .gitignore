@@ -136,7 +136,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-#
+# result
+out/
+
 None/
 output/
 
