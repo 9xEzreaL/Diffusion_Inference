@@ -63,7 +63,6 @@ class Network(BaseNetwork):
     def p_mean_variance(self, y_t, t, clip_denoised: bool, y_cond=None, guided_step=0, guided_mask=None, task='inpaint'):
         noise_level = extract(self.gammas, t, x_shape=(1, 1)).to(y_t.device)
         if task in ['cond', 'inpainting', 'inpaint']:
-
             y_0_hat = self.predict_start_from_noise(
                 y_t, t=t, noise=self.denoise_fn(torch.cat([y_cond, y_t], dim=1), noise_level))
         else:
