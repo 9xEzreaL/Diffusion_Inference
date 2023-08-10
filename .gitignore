@@ -142,6 +142,8 @@ out/
 .idea/
 None/
 output/
+config/ziyi/monte_carlo/
+data/mc_dataset.py
 
 # Pretrained models
 submodels/

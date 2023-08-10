@@ -1,0 +1,119 @@
+{
+    "name": "pain", // experiments name
+    "gpu_ids": [1], // gpu ids list, default is single 0
+    "seed" : -1, // random seed, seed <0 represents randomization not used
+    "finetune_norm": false, // find the parameters to optimize
+    "guided_step": 0,
+
+    "path": { //set every part file path
+        "base_dir": "out", // base path for all log except resume_state
+        "results": "results",
+        "resume_state": "submodels/cond_model/150",
+        "exp_name": "cond_model_plms/0809-eta05-new500"
+    },
+
+    "datasets": { // train or test
+        "test": {
+            "which_dataset": {
+                "name": "PainValidationDataset", // import Dataset() class / function(not recommend) from default file
+                "args":{
+                    "data_root": "/media/ziyi/Dataset/OAI_pain/full/ap/*",
+                    "ids": [1223, 1245, 2698, 5591, 6909, 9255, 9351, 9528] // if want all data ids: "all"
+                }
+            },
+            "dataloader":{
+                "args":{
+                    "batch_size": 8,
+                    "num_workers": 4,
+                    "pin_memory": true
+                }
+            }
+        }
+    },
+
+    "model": { // networks/metrics/losses/optimizers/lr_schedulers is a list and model is a dict
+        "which_model": { // import designated  model(trainer) using arguments
+            "name": ["models.model", "Palette"], // import Model() class / function(not recommend) from models.model.py (default is [models.model.py])
+            "args": {
+                "sample_num": 8, // process of each image
+                "task": "inpainting",
+                "ema_scheduler": {
+                    "ema_start": 1,
+                    "ema_iter": 1,
+                    "ema_decay": 0.9999
+                },
+                "optimizers": [
+                    { "lr": 5e-5, "weight_decay": 0}
+                ]
+            }
+        },
+        "which_networks": [ // import designated list of networks using arguments
+            {
+                "name": ["models.plms_network", "Network"], // import Network() class / function(not recommend) from default file (default is [models/network.py])
+                "args": { // arguments to initialize network
+                    "init_type": "kaiming", // method can be [normal | xavier| xavier_uniform | kaiming | orthogonal], default is kaiming
+                    "module_name": "guided_diffusion", // sr3 | guided_diffusion
+                    "new_sample_step": 500,
+                    "eta": 0.5,
+                    "unet": {
+                        "in_channel": 2,
+                        "out_channel": 1,
+                        "inner_channel": 64,
+                        "channel_mults": [
+                            1,
+                            2,
+                            4,
+                            8
+                        ],
+                        "attn_res": [
+                            // 32,
+                            16
+                            // 8
+                        ],
+                        "num_head_channels": 32,
+                        "res_blocks": 2,
+                        "dropout": 0.2,
+                        "image_size": 256
+                    },
+                    "beta_schedule": {
+                        "train": {
+                            "schedule": "linear",
+                            "n_timestep": 2000,
+                            // "n_timestep": 10, // debug
+                            "linear_start": 1e-6,
+                            "linear_end": 0.01
+                        },
+                        "test": {
+                            "schedule": "linear",
+                            "n_timestep": 2000,
+                            "linear_start": 1e-6,
+                            "linear_end": 0.01
+                        }
+                    }
+                }
+            }
+        ],
+        "which_losses": [ // import designated list of losses without arguments
+            "mse_loss" // import mse_loss() function/class from default file (default is [models/losses.py]), equivalent to { "name": "mse_loss", "args":{}}
+        ],
+        "which_metrics": [ // import designated list of metrics without arguments
+            "mae" // import mae() function/class from default file (default is [models/metrics.py]), equivalent to { "name": "mae", "args":{}}
+        ]
+    },
+
+    "train": { // arguments for basic training
+        "n_epoch": 1e8, // max epochs, not limited now
+        "n_iter": 1e8, // max interations
+        "val_epoch": 5, // valdation every specified number of epochs
+        "save_checkpoint_epoch": 10,
+        "log_iter": 1e3, // log every specified number of iterations
+        "tensorboard" : true // tensorboardX enable
+    },
+
+    "debug": { // arguments in debug mode, which will replace arguments in train
+        "val_epoch": 1,
+        "save_checkpoint_epoch": 1,
+        "log_iter": 2,
+        "debug_split": 50 // percent or number, change the size of dataloder to debug_split.
+    }
+}
