@@ -6,7 +6,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torchvision.utils import make_grid
 
 
-def tensor2img(tensor, out_type=np.uint8, min_max=(-1, 1)):
+def tensor2img(tensor, out_type=np.float32, min_max=(-1, 1)):
     '''
     Converts a torch Tensor into an image Numpy array
     Input: 4D(B,(3/1),H,W), 3D(C,H,W), or 2D(H,W), any range, RGB channel order
@@ -27,6 +27,9 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(-1, 1)):
         raise TypeError('Only support 4D, 3D and 2D tensor. But received with dimension: {:d}'.format(n_dim))
     if out_type == np.uint8:
         img_np = ((img_np+1) * 127.5).round()
+    else:
+        np.clip(img_np, -1, 1, out=img_np)
+        img_np = (img_np+1) / 2
         # Important. Unlike matlab, numpy.unit8() WILL NOT round by default.
     # return img_np.squeeze()
     return img_np[0, ::].astype(out_type).squeeze()

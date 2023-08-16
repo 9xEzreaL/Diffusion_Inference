@@ -83,7 +83,7 @@ class Palette(BaseModel):
     def get_current_visuals(self, phase='train'):
         dict = {
             'gt_image': (self.gt_image.detach()[:].float().cpu() + 1) / 2,
-            'cond_image': (self.cond_image.detach()[:].float().cpu() + 1) / 2,
+            'cond_image': (self.cond_image.detach()[:,0:1,::].float().cpu() + 1) / 2,
         }
         if self.task in ['inpainting', 'uncropping']:
             dict.update({
