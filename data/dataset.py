@@ -52,14 +52,21 @@ class PainValidationDataset(BaseDataset):# data.Dataset
     def __getitem__(self, index):
         ret = {}
         path = self.imgs[index]
+        id = path.rsplit("/")[-1].rsplit("\\")[-1]
         img = tiff.imread(path)
         img = (img - img.min()) / (img.max() - img.min())
         img = (img - 0.5) / 0.5
         img = torch.unsqueeze(torch.Tensor(img), 0)
 
-        mask = torch.unsqueeze(
-            self.transform_mask(tiff.imread(path.replace('ap', 'apeff/apeff')),
-                                tiff.imread(path.replace('ap', 'apmean').replace('.', '_100.0.'))), 0)
+        # mask = torch.unsqueeze(
+        #     self.transform_mask(tiff.imread(path.replace('ap', 'apeff')),
+        #                         tiff.imread(path.replace('ap', 'apmean').replace('.', '_100.0.'))), 0)
+        if self.masking_mode == 'blur':
+            mask = torch.unsqueeze(
+                self.blur_mask(self.mask_root, id), 0)
+        elif self.masking_mode == 'CNN':
+            mask = torch.unsqueeze(
+                self.transform_mask(self.mask_root, id), 0)
         mask = mask.squeeze(0)
         cond_image = img * (1. - mask) + mask * torch.randn_like(img)
         mask_img = img * (1. - mask) + mask
@@ -67,27 +74,46 @@ class PainValidationDataset(BaseDataset):# data.Dataset
         ret['cond_image'] = cond_image
         ret['mask_image'] = mask_img
         ret['mask'] = mask
-        ret['path'] = path.rsplit("/")[-1].rsplit("\\")[-1]
+        ret['path'] = id
         return ret
 
     def __len__(self):
         return len(self.imgs)
 
-    def transform_mask(self, mask, mask_2=None):
+    def transform_mask(self, mask_root, id):
         threshold = 0
+        mask = tiff.imread(os.path.join(mask_root[0], id))
         mask = self.conv(torch.Tensor(mask).unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0)
+
         mask = np.array(mask > threshold).astype(np.uint8)
         mask = torch.Tensor(mask)
 
-        if mask_2 is not None:
+        if len(self.mask_root) == 2:
             threshold = self.threshold * self.kernal_size_2 * self.kernal_size_2 # 0.04
+            mask_2 = tiff.imread(os.path.join(mask_root[1], id.replace('.', '_100.0.')))
             mask_2 = self.conv_2(torch.Tensor(mask_2).unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0)
             mask_2 = np.array(mask_2 > threshold).astype(np.uint8)
             mask_2 = torch.Tensor(mask_2)
+            # mask = mask_2 - mask
             mask += mask_2
             mask = np.array(mask > 0).astype(np.uint8)
             mask = torch.Tensor(mask)
+        return mask
 
+    def blur_mask(self, mask_root, id):
+        threshold = 0
+
+        mask = tiff.imread(os.path.join(mask_root[0], id))
+        mask = np.array(mask > threshold).astype(np.uint8)
+        mask = torch.Tensor(mask)
+        if len(self.mask_root) == 2:
+            threshold = self.threshold
+            mask_2 = tiff.imread(os.path.join(mask_root[1], id))
+            mask_2 = cv2.GaussianBlur(mask_2, (self.kernal_size, self.kernal_size), 0)
+            mask_2 = np.array(mask_2 > threshold).astype(np.uint8)
+            mask = np.array(mask) + mask_2
+            mask = np.array(mask > 0).astype(np.uint8)
+            mask = torch.Tensor(mask)
         return mask
 
     def __get_mask(self, mask, mask_2=None, id=None):
